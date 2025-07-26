@@ -22,6 +22,9 @@ const MAX_TURNS = 4;
 // ✅ カード一覧の読み込み（cards.json を参照）
 const cardsPath = path.join(__dirname, 'cards.json');
 const allCards = JSON.parse(fs.readFileSync(cardsPath, 'utf-8'));
+// ✅ ジャンル一覧の読み込み（genres.json を参照）
+const genresPath = path.join(__dirname, 'genres.json');
+const allGenres = JSON.parse(fs.readFileSync(genresPath, 'utf-8'));
 
 const rooms = {};
 
@@ -168,16 +171,21 @@ io.on('connection', (socket) => {
     if (room.readyPlayers.length === room.players.length) {
       if (room._turnProcessed !== room.turn) {  // ← 追加：同じターン内で二重処理防止
         room._turnProcessed = room.turn;
-
-      // ─── 最終ターン到達？ ───
-      if (room.turn >= MAX_TURNS) {
-        console.log(`🏁 ターン${room.turn}終了 → ゲームオーバー`);
-        const finalResults = {
-          playerVotes: room.votes,
-          allTitles: room.submissions,
-        };
-        io.to(roomId).emit('game-over', finalResults);
-　       return;
+        // ✅ ここでジャンルをランダムに決定
+        const newGenre = allGenres[Math.floor(Math.random() * allGenres.length)];
+        room.genre = newGenre;
+      
+        // 🔊 全員に送信
+        io.to(roomId).emit('new-genre', newGenre);
+        // ─── 最終ターン到達？ ───
+        if (room.turn >= MAX_TURNS) {
+          console.log(`🏁 ターン${room.turn}終了 → ゲームオーバー`);
+          const finalResults = {
+            playerVotes: room.votes,
+            allTitles: room.submissions,
+          };
+          io.to(roomId).emit('game-over', finalResults);
+  　       return;
 　　  }
         
         // 🔄 ターン処理
