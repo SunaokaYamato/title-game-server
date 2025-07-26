@@ -146,6 +146,14 @@ io.on('connection', (socket) => {
     console.log(`🔁 ${playerName} に新しいカードを補充`);
   });
 
+  // ✅クライアントからの手札リクエストに応えて現在の手札を返す
+  socket.on('request-hand', ({ roomId, playerName }) => {
+    const room = rooms[roomId];
+    if (room && room.hands[playerName]) {
+      socket.emit('deal-hand', room.hands[playerName]);
+    }
+  });
+
   // ✅ 次ターンへの準備完了通知
   socket.on('ready-for-next-turn', ({ roomId, playerName }) => {
     const room = rooms[roomId];
