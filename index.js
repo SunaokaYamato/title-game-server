@@ -169,6 +169,17 @@ io.on('connection', (socket) => {
       if (room._turnProcessed !== room.turn) {  // ← 追加：同じターン内で二重処理防止
         room._turnProcessed = room.turn;
 
+      // ─── 最終ターン到達？ ───
+      if (room.turn >= MAX_TURNS) {
+        console.log(`🏁 ターン${room.turn}終了 → ゲームオーバー`);
+        const finalResults = {
+          playerVotes: room.votes,
+          allTitles: room.submissions,
+        };
+        io.to(roomId).emit('game-over', finalResults);
+　       return;
+　　  }
+        
         // 🔄 ターン処理
         for (const { playerName, usedCards } of room.submissions) {
           const hand = room.hands[playerName] || [];
