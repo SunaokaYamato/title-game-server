@@ -189,6 +189,17 @@ io.on('connection', (socket) => {
         room.submissions = [];
 
         io.to(roomId).emit('next-turn', room.turn);
+        // 各プレイヤーに補充後の手札を再送信
+        for (const player of room.players) {
+         // player に対応する socket.id を探す
+         const socketId = [...io.sockets.sockets.entries()]
+           .find(([_, s]) =>
+             s.data.roomId === roomId && s.data.playerName === player
+           )?.[0];
+         if (socketId) {
+           io.to(socketId).emit('deal-hand', room.hands[player]);
+         }
+       }
       }
     }
   });
