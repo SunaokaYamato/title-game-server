@@ -79,6 +79,11 @@ io.on('connection', (socket) => {
     room.hands[playerName] = hand;
     socket.emit('deal-hand', hand);
 
+    // 🔽 ジャンルがすでに決定されていたら送る
+    if (room.genre) {
+      socket.emit('new-genre', room.genre);
+    }
+
     io.to(roomId).emit('players-in-room', room.players);
     console.log(`👥 ${playerName} がルーム ${roomId} に参加`);
   });
